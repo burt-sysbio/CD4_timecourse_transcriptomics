@@ -1,0 +1,12 @@
+Summarisation of bead level data:
+
+Outliers are removed by taking only beads with an expression value > 20 before
+using the 2.5 MADs rule. The ProbeIDs expression value is than the mean of the 
+remaining beads.
+
+MAD rule:
+mad = median absolute deviation
+(<http://en.wikipedia.org/wiki/Median_absolute_deviation>)
+x = one bead level expression value of some specific probeID
+Than:
+outliers are those x where abs((x-median)/mad) > 2.5 

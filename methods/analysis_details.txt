@@ -1,0 +1,182 @@
+
+##################################################################################
+Very Short description
+##################################################################################
+
+Scanning and data analysis
+
+Microarray scanning was done using an iScan array scanner. 
+Data extraction was done for all beads individually, and 
+outliers are removed when the absolute difference to the 
+median is greater than 2.5 times MAD(2.5 Hampel’s method). 
+All remaining bead level data points are than quantile 
+normalized [1]. As test for significance the student’s t-test is 
+used on the [After 14.02.2017: log2 scaled] bead expression values 
+of the two groups of interest.
+In the case of significance of expression against background we 
+tested for greater than all negative beads for this sample and 
+in the case of comparing separate groups we tested for inequality 
+of the means of the groups.
+[After 14.02.2017: In the case of comparing groups we additionally
+calculate p-values using averaged expression values for each
+sample in the group.]
+For the differential expression analysis Benjamini-Hochberg 
+correction [2] is applied to the complete set of p-values of 
+all ProbeIDs on the chip. The average expression value is 
+calculated as mean of the measured expressions of beads 
+together with the standard deviation of the beads.
+
+[1] Probe Level Quantile Normalization of High Density Oligonucleotide 
+Array Data, Ben Bolstad, Division of Biostatistics, 
+University of California, Berkeley December 2001
+
+[2] Y. Benjamini and Y. Hochberg (1995). Controlling the false 
+discovery rate: a practical and powerful approach to multiple 
+testing. Journal of the Royal Statistical Society B, Vol. 57, 289–300.
+
+
+##################################################################################
+Short description
+##################################################################################
+
+
+
+The analysis is done with R on the bead-level data which you
+can find in the raw data produced by the scanner (e.g. in
+5282035051.7z the file 5282035051_A.txt, which holds bead
+level data for all probeIDs of sample A).
+
+All analyses are done using the following mechanisms:
+1) outlier removal (see below).
+2) average values over beads are means (not median).
+3) statistical tests are t-tests over all beads (e.g for one 
+   probeID over all beads of all samples of a group) 
+   [Before 14.02.2017: in original scale (not log2 scale).]
+   [After 14.02.2017: in log2 scale.]
+   
+   Example:
+    group x is sample A,B,C
+    control y is sample D,E,F
+    to test for significance of difference between group x 
+    and control y, we use
+    t.test(all_beads_of_A_B_C, all_beads_D_E_F, 
+      alternative = "two.sided",
+      mu = 0 )
+
+   Example:
+    to check for significance against background (one specific 
+    probeID):
+      t.test(all_beads_of_A, all_negative_of_A, alternative="greater")
+
+   Benjamini-Hochberg correction is applied over all p-values of
+   the differential expression analysis.
+   
+   [After 14.02.2017: Additionally p-values of group comparissons
+   are calculated on the sample expression mean values:
+   Example:
+    group x is sample A,B,C
+    control y is sample D,E,F
+    to test for significance of difference between group x 
+    and control y, we use
+    t.test(mean_values_of_A_B_and_C, mean_values_of_D_E_and_F,
+      alternative = "two.sided",
+      mu = 0 )
+   ]
+
+   
+Calculation of GeneView data:
+The calculations are also done on the set of beads which belong to
+a given Gene Symbol (annotation column Symbol).
+
+   
+Outlier removal on bead level:
+
+Outliers are removed by taking only beads with an expression value > 20 before
+using the 2.5 MADs rule. The ProbeIDs expression value is than the mean of the 
+remaining beads.
+
+The remaining bead level lists of different length for each sample are randomly
+filled with NAs (NA=not available) and build the bead level matrix on which quantile
+normalization is performed.
+
+MAD rule:
+mad = median absolute deviation
+(<http://en.wikipedia.org/wiki/Median_absolute_deviation>)
+x = one bead level expression value of some specific probeID
+Than:
+outliers are those x where abs((x-median)/mad) > 2.5 
+
+
+Note for Agilent expression and miRNA chips:
+
+As scanner is used an Agilent SureScan Microarray Scanner.
+
+The Agilent Feature Extraction Software is used to generate raw data files.
+
+For further analysis all files having similar filenames to e.g.
+US22502683_253118113330_S01_miRNA_107_Sep09_1_1.txt
+are used where columns gMedianSignal and gBGMedianSignal(=background) are
+used as raw input data.
+
+Agilent chips do not consist of beads but similar to the Illumina design 
+each oligo is multiple times (depending on the chip type) on the chip 
+for each sample. This redundancy is used to do the same analysis on the 
+Agilent chips as used with the Illumina Bead chips.
+For Agilent chips where only one oligo is in place, column .nbeads will show
+the value 1, standard deviation is NA (not available) and p-values against
+background is set to 1.0.
+
+For the Agilent miRNA chips, the GeneView data is calculated using the
+mirBase ID of the miRNA (e.g. mmu-miR-669g).
+
+Note for Affymetrix:
+
+Analogous to the multiple beads the Affymetrix Probeset is used to average
+multiple measurements for one gene. Only the perfect match probes are used.
+The mismatch probes are discarded.
+
+
+##################################################################################
+used R and bioconductor packages
+##################################################################################
+
+R:
+	multicore/parallel
+
+Bioconductor:
+	All chips:
+		preprocessCore
+		SLmisc/MKmisc
+	Affy chips only:
+		affy
+		affyPLM
+		oligo
+		pd.hugene.2.0.st
+		pd.ragene.2.0.st
+		pd.mogene.1.0.st.v1
+		pd.mta.1.0
+		pd.clariom.s.human
+		pd.clariom.s.mouse
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
