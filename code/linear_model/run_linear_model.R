@@ -1,7 +1,9 @@
 # run the whole linear model pipeline
 #load output from linear model and perform pathway analysis
 #needs to process df and derive clean gene sets, then match to stat and TF targets
-
+require(utils)
+require(pheatmap) # only for session info output
+require(maSigPro) # only for session info output'
 source("code/paper_theme.R")
 source("code/linear_model/fit_linear_model.R")
 source("code/linear_model/proc_linear_model.R")
@@ -18,3 +20,5 @@ for(baseline in baselines){
   proc_model(baseline)
   run_pathways(baseline)
 }
+
+print(sessionInfo())
